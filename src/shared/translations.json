@@ -1,0 +1,40 @@
+{
+  "en": {
+    "administration": "Administration",
+    "email": "Email",
+    "home": "Home",
+    "login": "Login",
+    "logout": "Logout",
+    "password": "Password",
+    "roles": "Roles",
+    "submit": "Submit",
+    "users": "Users",
+    "welcome": "Welcome",
+    "enterEmail": "Please enter email.",
+    "enterEmailAndPassword": "Please enter email and password.",
+    "enterPassword": "Please enter password.",
+    "errorConnectingServer": "Error connecting to server.",
+    "invalidEmail": "Please enter a valid email.",
+    "invalidEmailPassword": "Invalid email or password.",
+    "welcomeToTheSystem": "Welcome to the system!"
+  },
+  "bg": {
+    "administration": "Администриране",
+    "email": "Имейл",
+    "home": "Начало",
+    "login": "Вход",
+    "logout": "Изход",
+    "password": "Парола",
+    "roles": "Роли",
+    "submit": "Потвърди",
+    "users": "Потребители",
+    "welcome": "Добре дошли",
+    "enterEmail": "Моля, въведете имейл.",
+    "enterEmailAndPassword": "Моля, въведете имейл и парола.",
+    "enterPassword": "Моля, въведете парола.",
+    "errorConnectingServer": "Грешка при връзка със сървъра.",
+    "invalidEmail": "Моля въведете валиден имейл.",
+    "invalidEmailPassword": "Невалиден имейл или парола.",
+    "welcomeToTheSystem": "Добре дошъл в системата!"
+  }
+}

@@ -1,0 +1,112 @@
+.login-box {
+  position: relative;
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  width: 360px;
+  text-align: left;
+}
+
+/* Флагове вътре в рамката */
+.login-lang {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Заглавие */
+.login-title {
+  margin-bottom: 25px;
+  font-size: 24px;
+  color: #333;
+}
+
+/* Контейнер за всяко поле */
+.input-wrapper {
+  width: 250px;
+  margin-left: 15px;
+  margin-right: auto;
+  position: relative;
+  margin-bottom: 18px;
+}
+
+
+/* Икони вляво */
+.input-icon {
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+/* Полета с padding за иконата и окото */
+.login-input {
+  width: 100%;
+  padding: 14px 40px 14px 36px; /* ляво за иконата, дясно за окото */
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+  outline: none;
+  text-align: left !important;
+}
+
+.login-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 4px rgba(74,144,226,0.4);
+}
+
+/* Бутон за показване на парола */
+.show-password-btn {
+  position: absolute;
+  right: -65px; /* леко вдясно */
+  top: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #4a90e2;
+  padding: 0;
+}
+
+/* Бутон Вход */
+.login-button {
+  width: 200px;
+  padding: 14px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  display: block;
+}
+
+.login-button:hover {
+  background: #3a78c2;
+}
+
+/* Скриване на вграденото око на Chrome/Edge */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-textfield-decoration-container {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+}
+
+.login-error {
+  color: red;
+  margin-top: 10px;
+  text-align: center;
+}
