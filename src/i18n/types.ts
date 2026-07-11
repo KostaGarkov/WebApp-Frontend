@@ -1,20 +1,4 @@
-export type Lang = "bg" | "en";
+import translations from "../shared/translations.json";
 
-export type TranslationKey =
-  | "administration"
-  | "email"
-  | "home"
-  | "login"
-  | "logout"
-  | "password"
-  | "roles"
-  | "submit"
-  | "users"
-  | "welcome"
-  | "enterEmail"
-  | "enterEmailAndPassword"
-  | "enterPassword"
-  | "errorConnectingServer"
-  | "invalidEmail"
-  | "invalidEmailPassword"
-  | "welcomeToTheSystem";
+export type Lang = keyof typeof translations;
+export type TranslationKey = keyof typeof translations["en"];

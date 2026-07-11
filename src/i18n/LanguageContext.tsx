@@ -1,5 +1,4 @@
-import { createContext, useContext, useState } from "react";
-import translations from "../shared/translations.json";
+import { createContext, useContext, useState, useEffect } from "react";
 import { Lang, TranslationKey } from "./types";
 
 interface LanguageContextValue {
@@ -12,8 +11,18 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
   const [lang, setLang] = useState<Lang>("bg");
+  const [translations, setTranslations] = useState<any>(null);
 
-  const t = (key: TranslationKey) => translations[lang][key];
+  useEffect(() => {
+    import("../shared/translations.json").then(module => {
+      setTranslations(module.default);
+    });
+  }, []);
+
+  const t = (key: TranslationKey) => {
+    if (!translations) return key;
+    return translations[lang][key];
+  };
 
   return (
     <LanguageContext.Provider value={{ lang, setLang, t }}>
