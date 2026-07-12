@@ -1,33 +1,45 @@
-import http from "./http";
+import { apiClient } from "./apiClient";
 
 export interface User {
-    id: number;
-    name: string;
-    email: string;
+  id: number;
+  userName: string;
+  email: string;
+  passwordHash: string;
+  createdAt: Date;
+  firstNameCyr: string;
+  firstNameLat: string;
+  isActive: boolean;
+  lastNameCyr: string;
+  lastNameLat: string;
+  phone: string;
 }
 
 export const userApi = {
-    getAll: async () => {
-        const res = await http.get<User[]>("/user");
-        return res.data;
-    },
+  async getAll(): Promise<User[]> {
+    return apiClient<User[]>("/user");
+  },
 
-    getById: async (id: number) => {
-        const res = await http.get<User>(`/user/${id}`);
-        return res.data;
-    },
+  async getById(id: number): Promise<User> {
+    return apiClient<User>(`/User/${id}`);
+  },
 
-    create: async (user: Omit<User, "id">) => {
-        const res = await http.post<User>("/user", user);
-        return res.data;
-    },
+  async create(user: Partial<User>): Promise<User> {
+    return apiClient<User>("/User", {
+      method: "POST",
+      body: JSON.stringify(user),
+    });
+  },
 
-    update: async (id: number, user: User) => {
-        const res = await http.put<User>(`/user/${id}`, user);
-        return res.data;
-    },
+  async update(id: number, user: Partial<User>): Promise<User> {
+    return apiClient<User>(`/User/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(user),
+    });
+  },
 
-    delete: async (id: number) => {
-        await http.delete(`/user/${id}`);
-    }
+  async delete(id: number): Promise<void> {
+    await apiClient<void>(`/User/${id}`, {
+      method: "DELETE",
+    });
+  },
 };

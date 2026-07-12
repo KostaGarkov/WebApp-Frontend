@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { APP_CONFIG } from "../config";
 
 export default function RoleCreate() {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ export default function RoleCreate() {
             ]
         };
 
-        fetch("http://localhost:5016/api/role", {
+        fetch(`${APP_CONFIG.apiBaseUrl}/role`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body)

@@ -1,28 +1,27 @@
 import { useEffect, useState } from "react";
 import { useLang } from "../i18n/LanguageContext";
-import { Link } from "react-router-dom";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
-interface RoleTranslation {
-    language: string;
-    name: string;
-}
-
-interface Role {
-    id: number;
-    translations: RoleTranslation[];
-}
+import { GridColDef } from "@mui/x-data-grid";
+import { AppDataGrid } from "../components/common/AppDataGrid";
+import { useWindowHeight } from "../hooks/useWindowHeight";
+import { APP_CONFIG } from "../config";
+import { roleApi, Role } from "../api/roleApi";
+import { GridRowSelectionModel } from "@mui/x-data-grid";
 
 export default function RoleList() {
-    const [roles, setRoles] = useState<Role[]>([]);
     const { lang, t } = useLang();
+    const browserHeight = useWindowHeight();
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>({
+        type: "include",
+        ids: new Set<string | number>(),
+    });
+    const [selectedId, setSelectedId] = useState<string | number | null>(null);
 
     const columns: GridColDef[] = [
         {
             field: "id",
             headerName: "ID",
-            width: 100,
-            hideable: false
+            width: 100
         },
         {
             field: "nameDisplay",
@@ -43,54 +42,60 @@ export default function RoleList() {
     ];
 
     useEffect(() => {
-        fetch("http://localhost:5016/api/role")
-            .then(r => r.json())
-            .then(data => setRoles(data));
+    roleApi.getAll()
+        .then((data) => {
+            console.log("ROLES FROM API:", data);
+            setRoles(data);
+        })
+        .catch((err) => {
+            console.error("Error loading roles", err);
+        });
     }, []);
+
+    const handleAdd = () => {
+        console.log("Добавяне на роля");
+    };
+
+    const handleEdit = () => {
+        console.log("Редакция на роля");
+    };
+
+    const handleDelete = () => {
+        console.log("Изтриване на роля");
+    };
+
+    const refreshGrid = () => {
+        roleApi.getAll().then(setRoles);
+    };
 
     return (
         <div>
             <h2>{t("roles")}</h2>
 
-            <Link to="/roles/create">Добави роля</Link>
-
-            <div style={{ height: 600, width: "100%", marginTop: 20 }}>
-                <DataGrid
-                    rows={roles}
-                    columns={columns}
-                    getRowId={(row) => row.id}
-                    columnVisibilityModel={{
-                        id: false
-                    }}
-                    checkboxSelection
-                    disableRowSelectionOnClick
-                    initialState={{
-                        filter: { filterModel: { items: [] } },
-                        pagination: {
-                            paginationModel: { pageSize: 20 }
-                        }
-                    }}
-                    pageSizeOptions={[20, 50, 100, 300, 500]}
-                    localeText={{
-                        toolbarDensity: t("density"),
-                        toolbarDensityLabel: t("density"),
-                        toolbarDensityCompact: t("compact"),
-                        toolbarDensityStandard: t("standard"),
-                        toolbarDensityComfortable: t("comfortable"),
-
-                        footerRowSelected: (count) =>
-                            count !== 1 ? `${count} ${t("rowsSelected")}` : `${count} ${t("rowSelected")}`,
-
-                        footerTotalRows: t("totalRows"),
-                        footerTotalVisibleRows: (visibleCount, totalCount) =>
-                            `${visibleCount} ${t("of")} ${totalCount}`,
-                        paginationDisplayedRows: ({ from, to, count }) =>
-                            `${from}–${to} ${t("of")} ${count}`,
-                        paginationRowsPerPage: t("rowsPerPage"),
-
-                    }}
-                />
+            <div style={{ marginBottom: 10, display: "flex", gap: "8px" }}>
+                <button onClick={handleAdd}>{t("add")}</button>
+                <button onClick={handleEdit} disabled={!selectedId}>{t("edit")}</button>
+                <button onClick={handleDelete} disabled={!selectedId}>{t("delete")}</button>
             </div>
+
+            <AppDataGrid
+                checkboxSelection
+                rows={roles}
+                columns={columns}
+                getRowId={(row) => row.id}
+                columnVisibilityModel={{
+                    id: false
+                }}
+                height={browserHeight*APP_CONFIG.factorGridHeight}
+                rowSelectionModel={selectedIds}
+                onRowSelectionModelChange={(model: GridRowSelectionModel) => {
+                    setSelectedIds(model);
+                    const firstId =
+                        model.ids.size > 0 ? Array.from(model.ids)[0] : null;
+                    setSelectedId(firstId);
+                }}
+                onRefresh={refreshGrid}
+            />
         </div>
     );
 }

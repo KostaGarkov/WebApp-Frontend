@@ -1,24 +1,16 @@
 import { useEffect, useState } from "react";
 import { useLang } from "../i18n/LanguageContext";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-
-interface User {
-    id: number;
-    username: string;
-    email: string;
-    phone: string;
-    isActive: boolean;
-}
+import { Link } from "react-router-dom";
+import { GridColDef } from "@mui/x-data-grid";
+import { userApi, User } from "../api/userApi";
+import { AppDataGrid } from "../components/common/AppDataGrid";
+import { useWindowHeight } from "../hooks/useWindowHeight";
+import { APP_CONFIG } from "../config";
 
 export default function UserList() {
     const [users, setUsers] = useState<User[]>([]);
-    const { lang, t } = useLang();
-
-    useEffect(() => {
-        fetch("http://localhost:5016/api/user")
-            .then(r => r.json())
-            .then(data => setUsers(data));
-    }, []);
+    const { t, lang } = useLang();
+    const browserHeight = useWindowHeight();
 
     const columns: GridColDef[] = [
         {
@@ -36,37 +28,30 @@ export default function UserList() {
         { field: "isActive", headerName: t("active"), width: 120, type: "boolean" }
     ];
 
+
+    useEffect(() => {
+        userApi.getAll()
+            .then((data) => {
+                console.log("USERS FROM API:", data);
+                setUsers(data);
+            })
+            .catch((err) => {
+                console.error("Error loading users", err);
+            });
+    }, []);
+
     return (
-        <div style={{ height: 600, width: "100%" }}>
+        <div>
             <h2>{t("users")}</h2>
 
-            <DataGrid
+            <Link to="/users/create">{t("add")}</Link>
+
+            <AppDataGrid
+                checkboxSelection
                 rows={users}
                 columns={columns}
-                checkboxSelection
-                disableRowSelectionOnClick
-                initialState={{
-                        filter: { filterModel: { items: [] } },
-                        pagination: {
-                            paginationModel: { pageSize: 20 }
-                        }
-                    }}
-                    pageSizeOptions={[20, 50, 100, 300, 500]}
-                localeText={{
-                    toolbarDensity: t("density"),
-                    toolbarDensityLabel: t("density"),
-                    toolbarDensityCompact: t("compact"),
-                    toolbarDensityStandard: t("standard"),
-                    toolbarDensityComfortable: t("comfortable"),
-
-                    footerRowSelected: (count) =>
-                        count !== 1 ? `${count} ${t("rowsSelected")}` : `${count} ${t("rowSelected")}`,
-
-                    footerTotalRows: t("totalRows"),
-                    paginationDisplayedRows: ({ from, to, count }) =>
-                            `${from}–${to} ${t("of")} ${count}`,
-                    paginationRowsPerPage: t("rowsPerPage")
-                }}
+                getRowId={(row) => row.id}
+                height={browserHeight*APP_CONFIG.factorGridHeight}
             />
         </div>
     );
