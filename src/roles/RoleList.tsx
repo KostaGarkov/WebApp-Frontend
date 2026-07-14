@@ -6,6 +6,10 @@ import { useWindowHeight } from "../hooks/useWindowHeight";
 import { APP_CONFIG } from "../config";
 import { roleApi, Role } from "../api/roleApi";
 import { GridRowSelectionModel } from "@mui/x-data-grid";
+import { AddButton } from '../components/buttons/AddButton';
+import { EditButton } from '../components/buttons/EditButton';
+import { DeleteButton } from '../components/buttons/DeleteButton';
+import { Box } from '@mui/material';
 
 export default function RoleList() {
     const { lang, t } = useLang();
@@ -15,7 +19,7 @@ export default function RoleList() {
         type: "include",
         ids: new Set<string | number>(),
     });
-    const [selectedId, setSelectedId] = useState<string | number | null>(null);
+     const [selectedId, setSelectedId] = useState<string | number | null>(null);
 
     const columns: GridColDef[] = [
         {
@@ -70,13 +74,15 @@ export default function RoleList() {
 
     return (
         <div>
-            <h2>{t("roles")}</h2>
+            <Box sx={{ ml: 2 }}>
+                <h2>{t("roles")}</h2>
+            </Box>
 
-            <div style={{ marginBottom: 10, display: "flex", gap: "8px" }}>
-                <button onClick={handleAdd}>{t("add")}</button>
-                <button onClick={handleEdit} disabled={!selectedId}>{t("edit")}</button>
-                <button onClick={handleDelete} disabled={!selectedId}>{t("delete")}</button>
-            </div>
+            <Box sx={{ display: 'flex', gap: 2, mb: 0.5, ml: 2 }}>
+                <AddButton onClick={handleAdd} />
+                <EditButton onClick={handleEdit} disabled={!selectedId} />
+                <DeleteButton onClick={handleDelete} disabled={!selectedId} />
+            </Box>
 
             <AppDataGrid
                 checkboxSelection
@@ -90,8 +96,7 @@ export default function RoleList() {
                 rowSelectionModel={selectedIds}
                 onRowSelectionModelChange={(model: GridRowSelectionModel) => {
                     setSelectedIds(model);
-                    const firstId =
-                        model.ids.size > 0 ? Array.from(model.ids)[0] : null;
+                    const firstId = model.ids.size > 0 ? Array.from(model.ids)[0] : null;
                     setSelectedId(firstId);
                 }}
                 onRefresh={refreshGrid}

@@ -75,6 +75,9 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="login-input"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit(e);
+          }}
         />
       </div>
 
@@ -88,6 +91,9 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="login-input"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit(e);
+          }}
         />
 
         <button
@@ -102,7 +108,6 @@ export default function LoginForm() {
       <button
         type="submit"
         className="login-button"
-        disabled={!email.trim() || !password.trim()}
       >
         {t("login")}
       </button>

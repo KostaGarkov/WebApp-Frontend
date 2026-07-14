@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import { useLang } from "../i18n/LanguageContext";
-import { Link } from "react-router-dom";
 import { GridColDef } from "@mui/x-data-grid";
 import { userApi, User } from "../api/userApi";
 import { AppDataGrid } from "../components/common/AppDataGrid";
 import { useWindowHeight } from "../hooks/useWindowHeight";
 import { APP_CONFIG } from "../config";
+import { AddButton } from '../components/buttons/AddButton';
+import { EditButton } from '../components/buttons/EditButton';
+import { DeleteButton } from '../components/buttons/DeleteButton';
+import { Box } from '@mui/material';
+import { GridRowSelectionModel } from "@mui/x-data-grid";
 
 export default function UserList() {
     const [users, setUsers] = useState<User[]>([]);
     const { t, lang } = useLang();
     const browserHeight = useWindowHeight();
+    const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>({
+        type: "include",
+        ids: new Set<string | number>(),
+    });
+    const [selectedId, setSelectedId] = useState<string | number | null>(null);
 
     const columns: GridColDef[] = [
         {
@@ -30,21 +39,43 @@ export default function UserList() {
 
 
     useEffect(() => {
-        userApi.getAll()
-            .then((data) => {
-                console.log("USERS FROM API:", data);
-                setUsers(data);
-            })
-            .catch((err) => {
-                console.error("Error loading users", err);
-            });
+    userApi.getAll()
+        .then((data) => {
+            console.log("USERS FROM API:", data);
+            setUsers(data);
+        })
+        .catch((err) => {
+            console.error("Error loading users", err);
+        });
     }, []);
 
+    const handleAdd = () => {
+        console.log("Добавяне на потребител");
+    };
+
+    const handleEdit = () => {
+        console.log("Редакция на потребител");
+    };
+
+    const handleDelete = () => {
+        console.log("Изтриване на потребител");
+    };
+
+    const refreshGrid = () => {
+        userApi.getAll().then(setUsers);
+    };
+    
     return (
         <div>
-            <h2>{t("users")}</h2>
+            <Box sx={{ ml: 2 }}>
+                <h2>{t("users")}</h2>
+            </Box>
 
-            <Link to="/users/create">{t("add")}</Link>
+            <Box sx={{ display: 'flex', gap: 2, mb: 0.5, ml: 2 }}>
+                <AddButton onClick={handleAdd} />
+                <EditButton onClick={handleEdit} disabled={!selectedId} />
+                <DeleteButton onClick={handleDelete} disabled={!selectedId} />
+            </Box>
 
             <AppDataGrid
                 checkboxSelection
@@ -52,6 +83,13 @@ export default function UserList() {
                 columns={columns}
                 getRowId={(row) => row.id}
                 height={browserHeight*APP_CONFIG.factorGridHeight}
+                rowSelectionModel={selectedIds}
+                onRowSelectionModelChange={(model: GridRowSelectionModel) => {
+                    setSelectedIds(model);
+                    const firstId = model.ids.size > 0 ? Array.from(model.ids)[0] : null;
+                    setSelectedId(firstId);
+                }}
+                onRefresh={refreshGrid}
             />
         </div>
     );

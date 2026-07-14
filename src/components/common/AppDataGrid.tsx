@@ -9,55 +9,61 @@ interface AppDataGridProps extends DataGridProps {
   onRefresh?: () => void;
 }
 
-function createFooter(selectedRowCount: number, onRefresh?: () => void) {
-    return function CustomFooter() {
-        return (
-            <GridFooterContainer
-                sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    px: 2,
-                }}
+function AppDataGridFooter({
+  selectedRowCount,
+  onRefresh
+}: {
+  selectedRowCount: number;
+  onRefresh?: () => void;
+}) {
+  const { t } = useLang();
+
+  return (
+    <GridFooterContainer
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        px: 2,
+      }}
+    >
+      {/* Ляво: избрани редове */}
+      <Box sx={{ flexGrow: 1 }}>
+        <GridSelectedRowCount selectedRowCount={selectedRowCount} />
+      </Box>
+
+      {/* Център: pagination */}
+      <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+        <GridPagination />
+      </Box>
+
+      {/* Дясно: refresh */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          justifyContent: "flex-end",
+          flexShrink: 0,
+        }}
+      >
+        {onRefresh && (
+          <Tooltip title={t("refresh")}>
+            <Button
+              variant="text"
+              size="small"
+              onClick={onRefresh}
+              sx={{
+                minWidth: "auto",
+                padding: "4px",
+                color: "text.secondary",
+              }}
             >
-                {/* Ляво: избрани редове */}
-                <Box sx={{ flexGrow: 1 }}>
-                    <GridSelectedRowCount selectedRowCount={selectedRowCount} />
-                </Box>
-
-                {/* Център: pagination */}
-                <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
-                    <GridPagination />
-                </Box>
-
-                {/* Дясно: бутон за обновяване */}
-                <Box
-                    sx={{
-                        flexGrow: 1,
-                        display: "flex",
-                        justifyContent: "flex-end",
-                        flexShrink: 0,
-                    }}
-                >
-                    {onRefresh && (
-                      <Tooltip title="Обнови">
-                        <Button
-                            variant="text"
-                            size="small"
-                            onClick={onRefresh}
-                            sx={{
-                                minWidth: "auto",
-                                padding: "4px",
-                                color: "text.secondary",
-                            }}
-                        >
-                            <RefreshIcon fontSize="small" />
-                        </Button>
-                      </Tooltip>
-                    )}
-                </Box>
-            </GridFooterContainer>
-        );
-    };
+              <RefreshIcon fontSize="small" />
+            </Button>
+          </Tooltip>
+        )}
+      </Box>
+    </GridFooterContainer>
+  );
 }
 
 export function AppDataGrid(props: AppDataGridProps) {
@@ -115,7 +121,12 @@ export function AppDataGrid(props: AppDataGridProps) {
         rowSelectionModel={props.rowSelectionModel}
         onRowSelectionModelChange={props.onRowSelectionModelChange}
         slots={{
-            footer: createFooter(selectedRowCount, props.onRefresh),
+            footer: () => (
+                <AppDataGridFooter
+                selectedRowCount={selectedRowCount}
+                onRefresh={props.onRefresh}
+                />
+            ),
         }}
       />
     </div>
