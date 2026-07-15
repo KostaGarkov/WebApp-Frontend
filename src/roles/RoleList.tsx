@@ -10,16 +10,20 @@ import { AddButton } from '../components/buttons/AddButton';
 import { EditButton } from '../components/buttons/EditButton';
 import { DeleteButton } from '../components/buttons/DeleteButton';
 import { Box } from '@mui/material';
+import RoleModal from "./RoleModal";
 
 export default function RoleList() {
     const { lang, t } = useLang();
     const browserHeight = useWindowHeight();
     const [roles, setRoles] = useState<Role[]>([]);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
     const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>({
         type: "include",
         ids: new Set<string | number>(),
     });
-     const [selectedId, setSelectedId] = useState<string | number | null>(null);
+    const [selectedId, setSelectedId] = useState<string | number | null>(null);
 
     const columns: GridColDef[] = [
         {
@@ -57,16 +61,29 @@ export default function RoleList() {
     }, []);
 
     const handleAdd = () => {
-        console.log("Добавяне на роля");
+        setSelectedRole(null);   // режим CREATE
+        setModalOpen(true);
     };
 
     const handleEdit = () => {
-        console.log("Редакция на роля");
+        if (!selectedId) return;
+
+        const role = roles.find(r => r.id === selectedId);
+        if (!role) return;
+
+        setSelectedRole(role);
+        setModalOpen(true);
     };
 
     const handleDelete = () => {
         console.log("Изтриване на роля");
     };
+
+    function loadRoles() {
+        fetch(`${APP_CONFIG.apiBaseUrl}/role`)
+            .then(r => r.json())
+            .then(data => setRoles(data));
+    }
 
     const refreshGrid = () => {
         roleApi.getAll().then(setRoles);
@@ -100,6 +117,13 @@ export default function RoleList() {
                     setSelectedId(firstId);
                 }}
                 onRefresh={refreshGrid}
+            />
+
+            <RoleModal
+                open={modalOpen}
+                onClose={() => setModalOpen(false)}
+                role={selectedRole}
+                onSaved={() => loadRoles()}
             />
         </div>
     );

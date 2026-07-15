@@ -2,11 +2,15 @@ import { apiClient } from "./apiClient";
 
 export interface Role {
   id: number;
-  nameDisplay: string;
   translations: Array<{
     language: string;
     name: string;
   }>;
+}
+
+export interface RoleTranslation {
+    language: string;
+    name: string;
 }
 
 export const roleApi = {
