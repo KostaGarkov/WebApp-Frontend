@@ -11,6 +11,8 @@ import { EditButton } from '../components/buttons/EditButton';
 import { DeleteButton } from '../components/buttons/DeleteButton';
 import { Box } from '@mui/material';
 import RoleModal from "./RoleModal";
+import { YesNoModal } from "../components/common/YesNoModal";
+import { AppSnackbar } from "../components/common/AppSnackbar";
 
 export default function RoleList() {
     const { lang, t } = useLang();
@@ -18,6 +20,11 @@ export default function RoleList() {
     const [roles, setRoles] = useState<Role[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("info");
+
 
     const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>({
         type: "include",
@@ -52,7 +59,6 @@ export default function RoleList() {
     useEffect(() => {
     roleApi.getAll()
         .then((data) => {
-            console.log("ROLES FROM API:", data);
             setRoles(data);
         })
         .catch((err) => {
@@ -76,7 +82,23 @@ export default function RoleList() {
     };
 
     const handleDelete = () => {
-        console.log("Изтриване на роля");
+        if (!selectedId) return;
+        setDeleteOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        const result = await roleApi.delete(Number(selectedId));
+
+        setSnackbarMessage(result.message);
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+
+        loadRoles();
+        setDeleteOpen(false);   
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteOpen(false);
     };
 
     function loadRoles() {
@@ -124,6 +146,23 @@ export default function RoleList() {
                 onClose={() => setModalOpen(false)}
                 role={selectedRole}
                 onSaved={() => loadRoles()}
+            />
+
+            <YesNoModal
+                open={deleteOpen}
+                title={t("areYouSure")}
+                message={t("rowWillBeDeleted")}
+                yesText={t("yes")}
+                noText={t("no")}
+                onYes={handleConfirmDelete}
+                onNo={handleCancelDelete}
+            />
+
+            <AppSnackbar
+                open={snackbarOpen}
+                message={snackbarMessage}
+                severity={snackbarSeverity}
+                onClose={() => setSnackbarOpen(false)}
             />
         </div>
     );

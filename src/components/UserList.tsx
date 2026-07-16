@@ -41,11 +41,10 @@ export default function UserList() {
     useEffect(() => {
     userApi.getAll()
         .then((data) => {
-            console.log("USERS FROM API:", data);
             setUsers(data);
         })
         .catch((err) => {
-            console.error("Error loading users", err);
+            console.error("Error loading users ", err);
         });
     }, []);
 

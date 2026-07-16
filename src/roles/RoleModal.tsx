@@ -55,14 +55,21 @@ export default function RoleModal({ open, onClose, role, onSaved }: Props) {
     }
 
     return (
-        <Dialog open={open} onClose={onClose}>
+        <Dialog open={open}
+            onClose={(_, reason) => {
+                if (reason === "backdropClick" || reason === "escapeKeyDown") {
+                    return; // блокира затварянето
+                }
+                onClose(); // позволено затваряне
+            }}
+        >
             <DialogTitle>
                 {role ? t("roleEditing") : t("addRole")}
             </DialogTitle>
 
             <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 0 }}>
                 <TextField 
-                    label="t(`name`) (BG)"
+                    label={`${t("name")} (BG)`}
                     value={bgName}
                     onChange={(e) => setBgName(e.target.value)}
                     fullWidth
@@ -70,7 +77,7 @@ export default function RoleModal({ open, onClose, role, onSaved }: Props) {
                 />
 
                 <TextField
-                    label="Name (EN)"
+                    label={`${t("name")} (EN)`}
                     value={enName}
                     onChange={(e) => setEnName(e.target.value)}
                     fullWidth

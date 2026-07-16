@@ -13,6 +13,10 @@ export interface RoleTranslation {
     name: string;
 }
 
+export interface ApiMessageResponse {
+    message: string;
+}
+
 export const roleApi = {
   getAll: () => apiClient<Role[]>(`/role`),
 
@@ -33,7 +37,7 @@ export const roleApi = {
     }),
 
   delete: (id: number) =>
-    apiClient(`/role/${id}`, {
+    apiClient<ApiMessageResponse>(`/role/${id}`, {
       method: "DELETE",
     }),
 };
