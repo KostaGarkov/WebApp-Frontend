@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLang } from "../i18n/LanguageContext";
-import { GridColDef } from "@mui/x-data-grid";
+import {
+    GridColDef,
+    GridRowSelectionModel,
+    GridFilterModel,
+    GridSortModel
+} from "@mui/x-data-grid";
 import { AppDataGrid } from "../components/common/AppDataGrid";
 import { useWindowHeight } from "../hooks/useWindowHeight";
 import { APP_CONFIG } from "../config";
 import { roleApi, Role } from "../api/roleApi";
-import { GridRowSelectionModel } from "@mui/x-data-grid";
 import { AddButton } from '../components/buttons/AddButton';
 import { EditButton } from '../components/buttons/EditButton';
 import { DeleteButton } from '../components/buttons/DeleteButton';
 import { Box } from '@mui/material';
 import RoleModal from "./RoleModal";
 import { YesNoModal } from "../components/common/YesNoModal";
-import { AppSnackbar } from "../components/common/AppSnackbar";
+import { AppSnackbar } from "../components/common/AppSnackbar"; 
 
 export default function RoleList() {
     const { lang, t } = useLang();
@@ -24,7 +28,30 @@ export default function RoleList() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
     const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error" | "warning" | "info">("info");
+    const [filterModel, setFilterModel] = useState<GridFilterModel>({ items: [] });
+    const handleFilterChange = (model: GridFilterModel) => {
+        setFilterModel(model);
 
+        if (filterTimer.current) {
+            clearTimeout(filterTimer.current);
+        }
+
+        filterTimer.current = setTimeout(() => {
+            loadRoles(model, sortModel, page, pageSize);
+        }, 300);
+    };
+    const [sortModel, setSortModel] = useState<GridSortModel>([]);
+    const handleSortChange = (model: GridSortModel) => {
+        setSortModel(model);
+
+        if (sortTimer.current) {
+            clearTimeout(sortTimer.current);
+        }
+
+        sortTimer.current = setTimeout(() => {
+            loadRoles(filterModel, model, page, pageSize);
+        }, 150);
+    };
 
     const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>({
         type: "include",
@@ -55,15 +82,23 @@ export default function RoleList() {
             }
         }
     ];
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [rowCount, setRowCount] = useState(0);
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+        loadRoles(filterModel, sortModel, newPage, pageSize);
+    };
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        loadRoles(filterModel, sortModel, page, newSize);
+    };
+    const filterTimer = useRef<NodeJS.Timeout | null>(null);
+    const sortTimer = useRef<NodeJS.Timeout | null>(null);
+
 
     useEffect(() => {
-    roleApi.getAll()
-        .then((data) => {
-            setRoles(data);
-        })
-        .catch((err) => {
-            console.error("Error loading roles", err);
-        });
+        loadRoles(filterModel, sortModel, page);
     }, []);
 
     const handleAdd = () => {
@@ -93,7 +128,7 @@ export default function RoleList() {
         setSnackbarSeverity("success");
         setSnackbarOpen(true);
 
-        loadRoles();
+        loadRoles(filterModel, sortModel, page, pageSize);
         setDeleteOpen(false);   
     };
 
@@ -101,10 +136,36 @@ export default function RoleList() {
         setDeleteOpen(false);
     };
 
-    function loadRoles() {
-        fetch(`${APP_CONFIG.apiBaseUrl}/role`)
+    function loadRoles(
+        filterModel: GridFilterModel,
+        sortModel: GridSortModel,
+        page: number,
+        pageSize: number = 20
+    ) 
+    {
+        const params = new URLSearchParams();
+
+        // Филтри
+        if (filterModel?.items) {
+            params.append("filters", JSON.stringify(filterModel.items));
+        }
+
+        // Сортиране
+        if (sortModel && sortModel.length > 0) {
+            params.append("sortField", sortModel[0].field);
+            params.append("sortDirection", sortModel[0].sort ?? "asc");
+        }
+
+        // Страниране
+        params.append("page", page.toString());
+        params.append("pageSize", pageSize.toString());
+
+        fetch(`${APP_CONFIG.apiBaseUrl}/role?${params.toString()}`)
             .then(r => r.json())
-            .then(data => setRoles(data));
+            .then(result => {
+                setRoles(result.data);
+                setRowCount(result.totalCount);
+            });
     }
 
     const refreshGrid = () => {
@@ -127,6 +188,9 @@ export default function RoleList() {
                 checkboxSelection
                 rows={roles}
                 columns={columns}
+                page={page}
+                pageSize={pageSize}
+                rowCount={rowCount}
                 getRowId={(row) => row.id}
                 columnVisibilityModel={{
                     id: false
@@ -138,14 +202,19 @@ export default function RoleList() {
                     const firstId = model.ids.size > 0 ? Array.from(model.ids)[0] : null;
                     setSelectedId(firstId);
                 }}
+
                 onRefresh={refreshGrid}
+                onFilterModelChange={handleFilterChange}
+                onSortModelChange={handleSortChange}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
             />
 
             <RoleModal
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 role={selectedRole}
-                onSaved={() => loadRoles()}
+                onSaved={() => loadRoles(filterModel, sortModel, page, pageSize)}
             />
 
             <YesNoModal
