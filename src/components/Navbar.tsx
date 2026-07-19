@@ -3,7 +3,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { useLang } from "../i18n/LanguageContext";
 import { useState, useRef, useEffect } from "react";
 
-export default function Navbar() {
+export default function Navbar({ onMenuChange }: { onMenuChange: (menu: string) => void }) {
   const navigate = useNavigate();
   const { t } = useLang();
 
@@ -66,13 +66,22 @@ export default function Navbar() {
   return (
     <nav style={styles.nav}>
       <div style={styles.left}>
-        <Link to="/dashboard" style={styles.link}>{t("home")}</Link>
+        <Link
+          to="/dashboard"
+          style={styles.link}
+          onClick={() => onMenuChange("home")}
+        >
+          {t("home")}
+        </Link>
 
         <div style={{ position: "relative" }}>
           <span
             ref={adminRef}
             style={styles.link}
-            onClick={() => setShowAdmin(prev => !prev)}
+            onClick={() => {
+              setShowAdmin(prev => !prev);
+              onMenuChange("administration");
+            }}
           >
             {t("administration")} ▾
           </span>
@@ -109,7 +118,10 @@ export default function Navbar() {
               <Link
                 to="/settings/users"
                 style={styles.dropdownItem}
-                onClick={() => setShowAdmin(false)}
+                onClick={() => {
+                  setShowAdmin(false);
+                  onMenuChange("users");
+                }}
               >
                 {t("users")}
               </Link>
@@ -117,7 +129,10 @@ export default function Navbar() {
               <Link
                 to="/roles"
                 style={styles.dropdownItem}
-                onClick={() => setShowAdmin(false)}
+                onClick={() => {
+                  setShowAdmin(false);
+                  onMenuChange("roles");
+                }}
               >
                 {t("roles")}
               </Link>

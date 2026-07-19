@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLang } from "../i18n/LanguageContext";
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridRowSelectionModel } from "@mui/x-data-grid";
 import { userApi, User } from "../api/userApi";
 import { AppDataGrid } from "../components/common/AppDataGrid";
 import { useWindowHeight } from "../hooks/useWindowHeight";
@@ -9,12 +9,12 @@ import { AddButton } from '../components/buttons/AddButton';
 import { EditButton } from '../components/buttons/EditButton';
 import { DeleteButton } from '../components/buttons/DeleteButton';
 import { Box } from '@mui/material';
-import { GridRowSelectionModel } from "@mui/x-data-grid";
 
 export default function UserList() {
     const [users, setUsers] = useState<User[]>([]);
     const { t, lang } = useLang();
     const browserHeight = useWindowHeight();
+
     const [selectedIds, setSelectedIds] = useState<GridRowSelectionModel>({
         type: "include",
         ids: new Set<string | number>(),
@@ -37,16 +37,28 @@ export default function UserList() {
         { field: "isActive", headerName: t("active"), width: 120, type: "boolean" }
     ];
 
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
+    const [rowCount, setRowCount] = useState(0);
+
+    const loadUsers = useCallback(() => {
+        userApi.getAll()
+            .then((data) => {
+                setUsers(data);
+                setRowCount(data.length);
+            })
+            .catch((err) => {
+                console.error("Error loading users ", err);
+            });
+    }, []);
 
     useEffect(() => {
-    userApi.getAll()
-        .then((data) => {
-            setUsers(data);
-        })
-        .catch((err) => {
-            console.error("Error loading users ", err);
-        });
-    }, []);
+        loadUsers();
+    }, [loadUsers]);
+
+    useEffect(() => {
+        setPage(0);
+    }, [users]);
 
     const handleAdd = () => {
         console.log("Добавяне на потребител");
@@ -61,9 +73,17 @@ export default function UserList() {
     };
 
     const refreshGrid = () => {
-        userApi.getAll().then(setUsers);
+        loadUsers();
     };
-    
+
+    const handlePageChange = (newPage: number) => {
+        setPage(newPage);
+    };
+
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+    };
+
     return (
         <div>
             <Box sx={{ ml: 2 }}>
@@ -80,8 +100,11 @@ export default function UserList() {
                 checkboxSelection
                 rows={users}
                 columns={columns}
+                page={page}
+                pageSize={pageSize}
+                rowCount={rowCount}
                 getRowId={(row) => row.id}
-                height={browserHeight*APP_CONFIG.factorGridHeight}
+                height={browserHeight * APP_CONFIG.factorGridHeight}
                 rowSelectionModel={selectedIds}
                 onRowSelectionModelChange={(model: GridRowSelectionModel) => {
                     setSelectedIds(model);
@@ -89,6 +112,8 @@ export default function UserList() {
                     setSelectedId(firstId);
                 }}
                 onRefresh={refreshGrid}
+                onPageChange={handlePageChange}
+                onPageSizeChange={handlePageSizeChange}
             />
         </div>
     );

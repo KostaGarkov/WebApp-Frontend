@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useLang } from "../i18n/LanguageContext";
 import {
     GridColDef,
@@ -16,7 +16,7 @@ import { DeleteButton } from '../components/buttons/DeleteButton';
 import { Box } from '@mui/material';
 import RoleModal from "./RoleModal";
 import { YesNoModal } from "../components/common/YesNoModal";
-import { AppSnackbar } from "../components/common/AppSnackbar"; 
+import { AppSnackbar } from "../components/common/AppSnackbar";
 
 export default function RoleList() {
     const { lang, t } = useLang();
@@ -69,17 +69,8 @@ export default function RoleList() {
             field: "nameDisplay",
             headerName: t("name"),
             width: 300,
-            sortable: false,
-            filterable: false,
-            renderCell: (params: any) => {
-                const row = params.row;
-                if (!row || !row.translations) return "";
-
-                const targetLang = lang === "bg" ? "bg" : "en";
-                const entry = row.translations.find((t: any) => t.language === targetLang);
-
-                return entry ? entry.name : "";
-            }
+            filterable: true,
+            type: "string"
         }
     ];
     const [page, setPage] = useState(0);
@@ -95,11 +86,6 @@ export default function RoleList() {
     };
     const filterTimer = useRef<NodeJS.Timeout | null>(null);
     const sortTimer = useRef<NodeJS.Timeout | null>(null);
-
-
-    useEffect(() => {
-        loadRoles(filterModel, sortModel, page);
-    }, []);
 
     const handleAdd = () => {
         setSelectedRole(null);   // режим CREATE
@@ -136,42 +122,47 @@ export default function RoleList() {
         setDeleteOpen(false);
     };
 
-    function loadRoles(
+    const loadRoles = useCallback((
         filterModel: GridFilterModel,
         sortModel: GridSortModel,
         page: number,
         pageSize: number = 20
-    ) 
-    {
+    ) => {
         const params = new URLSearchParams();
 
-        // Филтри
         if (filterModel?.items) {
             params.append("filters", JSON.stringify(filterModel.items));
         }
 
-        // Сортиране
         if (sortModel && sortModel.length > 0) {
             params.append("sortField", sortModel[0].field);
             params.append("sortDirection", sortModel[0].sort ?? "asc");
         }
 
-        // Страниране
         params.append("page", page.toString());
         params.append("pageSize", pageSize.toString());
 
         fetch(`${APP_CONFIG.apiBaseUrl}/role?${params.toString()}`)
             .then(r => r.json())
             .then(result => {
-                setRoles(result.data);
+                setRoles(
+                    result.data.map((r: any) => ({
+                        ...r,
+                        nameDisplay: r.translations.find((t: any) => t.language === lang)?.name ?? ""
+                    }))
+                );
                 setRowCount(result.totalCount);
             });
-    }
+    }, [lang]);
 
     const refreshGrid = () => {
-        roleApi.getAll().then(setRoles);
+        loadRoles(filterModel, sortModel, page, pageSize);
     };
 
+    useEffect(() => {
+        loadRoles(filterModel, sortModel, page, pageSize);
+    }, [filterModel, sortModel, page, pageSize, loadRoles]);
+    
     return (
         <div>
             <Box sx={{ ml: 2 }}>

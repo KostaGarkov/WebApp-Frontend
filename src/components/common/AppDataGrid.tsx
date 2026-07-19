@@ -9,9 +9,8 @@ import {
   GridSortModel
 } from "@mui/x-data-grid";
 import { useLang } from "../../i18n/LanguageContext";
-import { Button, Box, Tooltip, TextField } from "@mui/material";
+import { Button, Box, Tooltip } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { useState } from "react";
 
 interface AppDataGridProps extends DataGridProps {
   height?: number;
@@ -28,67 +27,47 @@ interface AppDataGridProps extends DataGridProps {
   onPageSizeChange?: (pageSize: number) => void;
 }
 
-function AppDataGridFooter({
-  selectedRowCount,
-  onRefresh
-}: {
-  selectedRowCount: number;
-  onRefresh?: () => void;
-}) {
-  const { t } = useLang();
-
-  return (
-    <GridFooterContainer
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        px: 2,
-      }}
-    >
-      <Box sx={{ flexGrow: 1 }}>
-        <GridSelectedRowCount selectedRowCount={selectedRowCount} />
-      </Box>
-
-      <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
-        <GridPagination />
-      </Box>
-
-      <Box
-        sx={{
-          flexGrow: 1,
-          display: "flex",
-          justifyContent: "flex-end",
-          flexShrink: 0,
-        }}
-      >
-        {onRefresh && (
-          <Tooltip title={t("refresh")}>
-            <Button
-              variant="text"
-              size="small"
-              onClick={onRefresh}
-              sx={{
-                minWidth: "auto",
-                padding: "4px",
-                color: "text.secondary",
-              }}
-            >
-              <RefreshIcon fontSize="small" />
-            </Button>
-          </Tooltip>
-        )}
-      </Box>
-    </GridFooterContainer>
-  );
-}
-
 export function AppDataGrid(props: AppDataGridProps) {
   const { t } = useLang();
+
   const selection = props.rowSelectionModel as GridRowSelectionModel | undefined;
   const selectedRowCount = selection?.ids?.size ?? 0;
 
-  const [quickFilter, setQuickFilter] = useState("");
+  // ---------------------------------------------------------
+  // Footer – вътрешна функция, има достъп до props и selectedRowCount
+  // ---------------------------------------------------------
+  function AppDataGridFooter() {
+    return (
+      <GridFooterContainer sx={{ display: "flex", alignItems: "center", px: 2 }}>
+        <Box sx={{ flexGrow: 1 }}>
+          <GridSelectedRowCount selectedRowCount={selectedRowCount} />
+        </Box>
 
+        <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "center" }}>
+          <GridPagination />
+        </Box>
+
+        <Box sx={{ flexGrow: 1, display: "flex", justifyContent: "flex-end" }}>
+          {props.onRefresh && (
+            <Tooltip title={t("refresh")}>
+              <Button
+                variant="text"
+                size="small"
+                onClick={props.onRefresh}
+                sx={{ minWidth: "auto", padding: "4px", color: "text.secondary" }}
+              >
+                <RefreshIcon fontSize="small" />
+              </Button>
+            </Tooltip>
+          )}
+        </Box>
+      </GridFooterContainer>
+    );
+  }
+
+  // ---------------------------------------------------------
+  // Основен компонент
+  // ---------------------------------------------------------
   return (
     <div
       style={{
@@ -100,21 +79,18 @@ export function AppDataGrid(props: AppDataGridProps) {
         boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
       }}
     >
-      {/* Quick Filter над таблицата */}
-      <TextField
-        size="small"
-        placeholder="Търсене..."
-        value={quickFilter}
-        onChange={(e) => setQuickFilter(e.target.value)}
-        sx={{ mb: 1 }}
-      />
-
       <DataGrid
         {...props}
         rowHeight={36}
         columnHeaderHeight={36}
         pageSizeOptions={[20, 50, 100]}
         paginationMode="server"
+
+        // Връщаме footer-а
+        slots={{
+          footer: AppDataGridFooter
+        }}
+
         sx={{
           border: "1px solid #ddd",
           "& .MuiDataGrid-cell": {
@@ -129,9 +105,7 @@ export function AppDataGrid(props: AppDataGridProps) {
             }
           }
         }}
-        initialState={{
-          filter: { filterModel: { items: [] } }
-        }}
+
         localeText={{
           toolbarDensity: t("density"),
           toolbarDensityLabel: t("density"),
@@ -145,30 +119,37 @@ export function AppDataGrid(props: AppDataGridProps) {
           footerTotalRows: t("totalRows"),
           paginationDisplayedRows: ({ from, to, count }) =>
             `${from}–${to} ${t("of")} ${count}`,
-          paginationRowsPerPage: t("rowsPerPage")
+          paginationRowsPerPage: t("rowsPerPage"),
+
+          columnMenuSortAsc: t("sortAsc"),
+          columnMenuSortDesc: t("sortDesc"),
+          columnMenuFilter: t("filter"),
+          columnMenuHideColumn: t("hideColumn"),
+          columnMenuManageColumns: t("manageColumns"),
+          columnMenuShowColumns: t("showColumn"),
+          filterOperatorContains: t("contains"),
+          filterOperatorDoesNotContain: t("notContains"),
+          filterOperatorEquals: t("equals"),
+          filterOperatorDoesNotEqual: t("notEquals"),
+          filterOperatorStartsWith: t("startsWith"),
+          filterOperatorEndsWith: t("endsWith"),
+          filterOperatorIsEmpty: t("isEmpty"),
+          filterOperatorIsNotEmpty: t("isNotEmpty"),
+          filterOperatorIsAnyOf: t("isAnyOf"),
+          filterPanelColumn: t("column"),
+          filterPanelOperator: t("operator"),
+          filterPanelInputLabel: t("value"),
+          filterPanelInputPlaceholder: t("valuePlaceholder"),
+          noRowsLabel: t("noRows"),
+          noResultsOverlayLabel: t("noResults"),
         }}
+
         rowSelectionModel={props.rowSelectionModel}
         onRowSelectionModelChange={props.onRowSelectionModelChange}
 
-        // Скриваме toolbar-а напълно
         showToolbar={false}
-
-        // Оставяме Column Selector
         disableColumnSelector={false}
-
-        // Скриваме Filter Panel
-        disableColumnFilter={true}
-
-        // Подаваме quick filter към DataGrid
-        filterModel={{
-          items: [
-            {
-              field: props.columns[0].field,
-              operator: "contains",
-              value: quickFilter
-            }
-          ]
-        }}
+        disableColumnFilter={false}
 
         checkboxSelection={props.singleSelect === true}
         disableMultipleRowSelection={props.singleSelect !== true}
