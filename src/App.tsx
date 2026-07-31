@@ -5,6 +5,7 @@ import UserList from "./components/UserList";
 import ProtectedLayout from "./components/ProtectedLayout";
 import RoleList from "./roles/RoleList";
 import RoleCreate from "./roles/RoleCreate";
+import RolePermissionsPage from "./roles/RolePermissionsPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/settings/users" element={<UserList />} />
           <Route path="/roles" element={<RoleList />} />
           <Route path="/roles/create" element={<RoleCreate />} />
+          <Route path="/role-permissions" element={<RolePermissionsPage />} />
         </Route>
       </Routes>
     </div>

@@ -136,6 +136,16 @@ export default function Navbar({ onMenuChange }: { onMenuChange: (menu: string) 
               >
                 {t("roles")}
               </Link>
+              <Link
+                to="/role-permissions"
+                style={styles.dropdownItem}
+                onClick={() => {
+                  setShowAdmin(false);
+                  onMenuChange("role-permissions");
+                }}
+              >
+                {t("rolePermissions")}
+              </Link>
             </div>
           )}
         </div>
