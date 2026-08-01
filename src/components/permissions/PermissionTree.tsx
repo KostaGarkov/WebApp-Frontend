@@ -1,46 +1,51 @@
 import { useEffect, useState } from "react";
-import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
+import { fetchPermissionTree } from "../../api/permissions";
+import { PermissionTreeDto } from "../../types/PermissionTreeDto";
+import { TreeNode } from "./TreeNode";
+import { useLang } from "../../i18n/LanguageContext";
 
-interface PermissionTreeDto {
-  id: number;
-  key: string;
-  nameBg: string;
-  nameEn: string;
-  parentId: number | null;
-  order: number;
-  children: PermissionTreeDto[];
+interface Props {
+    rolePermissions: number[];
+    onTogglePermission: (id: number) => void;
 }
 
-export default function PermissionTree() {
-  const [tree, setTree] = useState<PermissionTreeDto[]>([]);
+export default function PermissionTree({ rolePermissions, onTogglePermission }: Props) {
+    const [tree, setTree] = useState<PermissionTreeDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const { t } = useLang();
+    const [selectedId, setSelectedId] = useState<number | null>(null);
+    const onSelect = (id: number) => setSelectedId(id);
 
-  useEffect(() => {
-    fetch("/api/permissions/tree")
-      .then((res) => res.json())
-      .then((data) => setTree(data));
-  }, []);
+    useEffect(() => {
+        fetchPermissionTree()
+            .then(data => {
+                setTree(data);
+                setLoading(false);
+            })
+            .catch(err => {
+                console.error(t("failedLoadPermissions"), err);
+                setLoading(false);
+            });
+    }, []);
 
-  const flatten = (nodes: PermissionTreeDto[]): any[] => {
-    const result: any[] = [];
+    if (loading) {
+        return <div>{t("loading")}...</div>;
+    }
 
-    const walk = (node: PermissionTreeDto, parentId: string | null) => {
-      result.push({
-        id: node.id.toString(),
-        label: node.nameBg,
-        parentId: parentId,
-      });
-
-      node.children?.forEach((child) => walk(child, node.id.toString()));
-    };
-
-    nodes.forEach((n) => walk(n, null));
-    return result;
-  };
-
-  return (
-    <RichTreeView
-      items={flatten(tree)}
-      defaultExpandedItems={["3", "4", "8"]} // пример
-    />
+    return (
+      <div style={{maxHeight: "70vh", overflowY: "auto", paddingRight: "10px"}}>
+          {tree.map(root => (
+              <TreeNode
+                key={root.id}
+                node={root}
+                level={0}
+                selectedId={selectedId}
+                onSelect={onSelect}
+                rolePermissions={rolePermissions}
+                onTogglePermission={onTogglePermission}
+                defaultExpanded={true}
+            />
+          ))}
+      </div>
   );
 }

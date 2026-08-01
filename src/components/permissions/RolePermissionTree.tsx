@@ -2,16 +2,8 @@ import { useEffect, useState } from "react";
 import { RichTreeView } from "@mui/x-tree-view/RichTreeView";
 import { Checkbox } from "@mui/material";
 import { APP_CONFIG } from "../../config";
-
-interface PermissionTreeDto {
-  id: number;
-  key: string;
-  nameBg: string;
-  nameEn: string;
-  parentId: number | null;
-  order: number;
-  children: PermissionTreeDto[];
-}
+import { useLang } from "../../i18n/LanguageContext";
+import { PermissionTreeDto } from "../../types/PermissionTreeDto";
 
 interface Props {
   roleId: number;
@@ -20,6 +12,7 @@ interface Props {
 export default function RolePermissionTree({ roleId }: Props) {
   const [tree, setTree] = useState<PermissionTreeDto[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
+  const { lang } = useLang();
 
   // Load permission tree
   useEffect(() => {
@@ -42,7 +35,7 @@ export default function RolePermissionTree({ roleId }: Props) {
     const walk = (node: PermissionTreeDto, parentId: string | null) => {
       result.push({
         id: node.id.toString(),
-        label: node.nameBg, // string only!
+        label: lang === "bg" ? node.nameBg : node.nameEn, // string only!
         parentId,
       });
 

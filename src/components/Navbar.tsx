@@ -144,7 +144,7 @@ export default function Navbar({ onMenuChange }: { onMenuChange: (menu: string) 
                   onMenuChange("role-permissions");
                 }}
               >
-                {t("rolePermissions")}
+                {t("rolesPermissions")}
               </Link>
             </div>
           )}
